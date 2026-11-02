@@ -356,7 +356,7 @@
 
             <div class="d-flex align-items-center justify-content-between gap-1 mb-2">
               <h2 class="section-title mb-0">Appearance</h2>
-              <span class="form-text">Hex, without <code>#</code></span>
+              <span class="form-text">Hex or CSS name</span>
             </div>
 
             <div class="row g-2">
@@ -370,15 +370,15 @@
                     aria-label="Pick the background color"
                   />
                   <input id="bgcolorText"
-                    class="form-control text-uppercase"
+                    class="form-control"
                     type="text"
-                    maxlength="7"
+                    maxlength="24"
                     placeholder="111"
                     value="111"
                     autocomplete="off"
                     autocapitalize="none"
                     spellcheck="false"
-                    aria-label="Background hex color without the hash"
+                    aria-label="Background hex color or CSS color name"
                   />
                 </div>
               </div>
@@ -393,15 +393,15 @@
                     aria-label="Pick the title color"
                   />
                   <input id="titlecolorText"
-                    class="form-control text-uppercase"
+                    class="form-control"
                     type="text"
-                    maxlength="7"
+                    maxlength="24"
                     placeholder="fff"
                     value="fff"
                     autocomplete="off"
                     autocapitalize="none"
                     spellcheck="false"
-                    aria-label="Title hex color without the hash"
+                    aria-label="Title hex color or CSS color name"
                   />
                 </div>
               </div>
@@ -425,14 +425,14 @@
                     disabled
                   />
                   <input id="bordercolorText"
-                    class="form-control text-uppercase"
+                    class="form-control"
                     type="text"
-                    maxlength="7"
-                    placeholder="none"
+                    maxlength="24"
+                    placeholder="blue"
                     autocomplete="off"
                     autocapitalize="none"
                     spellcheck="false"
-                    aria-label="Border hex color without the hash"
+                    aria-label="Border hex color or CSS color name"
                     disabled
                   />
                 </div>
@@ -544,13 +544,28 @@
       ];
 
       function normalizeHex(value) {
-        let hex = String(value || "").trim().replace(/^#/, "").toLowerCase();
+        const hex = String(value || "").trim().replace(/^#/, "").toLowerCase();
 
-        if (/^[0-9a-f]{3}$/.test(hex)) {
-          hex = hex.split("").map((char) => char + char).join("");
+        if (!/^(?:[0-9a-f]{3}|[0-9a-f]{4}|[0-9a-f]{6}|[0-9a-f]{8})$/.test(hex)) {
+          return "";
         }
 
-        return /^[0-9a-f]{6}$/.test(hex) ? hex : "";
+        if (hex.length === 3 || hex.length === 4) {
+          return hex.split("").map((char) => char + char).join("");
+        }
+
+        return hex;
+      }
+
+      function normalizeColor(value) {
+        const hex = normalizeHex(value);
+
+        if (hex) {
+          return hex;
+        }
+
+        const name = String(value || "").trim().toLowerCase();
+        return /^[a-z]+$/.test(name) ? name : "";
       }
 
       function syncPicker(field) {
@@ -579,7 +594,7 @@
         field.text.addEventListener("blur", () => {
           const raw = field.text.value.trim().replace(/^#/, "").toLowerCase();
 
-          if (raw) {
+          if (/^[a-z]+$/.test(raw) || normalizeHex(raw)) {
             field.text.value = raw;
           }
 
@@ -653,17 +668,17 @@
       }
 
       function appendColor(params, field) {
-        const hex = normalizeHex(field.text.value);
+        const value = normalizeColor(field.text.value);
 
-        if (!hex) {
+        if (!value) {
           return;
         }
 
-        if (field.defaultValue && hex === normalizeHex(field.defaultValue)) {
+        if (field.defaultValue && value === normalizeColor(field.defaultValue)) {
           return;
         }
 
-        params.set(field.name, hex);
+        params.set(field.name, value);
       }
 
       function buildParams() {
@@ -687,7 +702,7 @@
             return;
           }
 
-          if (field.text.value.trim() && !normalizeHex(field.text.value)) {
+          if (field.text.value.trim() && !normalizeColor(field.text.value)) {
             setColorInvalid(field, true);
             hasInvalidColor = true;
           } else {
@@ -696,7 +711,7 @@
         });
 
         if (hasInvalidColor) {
-          showError("Colors must be 3 or 6 digit hex values, with or without '#'.");
+          showError("Colors must be a hex value (3, 4, 6 or 8 digits) or a CSS color name.");
           return null;
         }
 

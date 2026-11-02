@@ -24,8 +24,10 @@
 
 #### Border Color
 ```markdown
-![JJ GH Top Langs](https://jj-ghtoplangs.alwaysdata.net/toplangs?user=<user>&bgcolor=000&titlecolor=fff&bordercolor=fff)
+![JJ GH Top Langs](https://jj-ghtoplangs.alwaysdata.net/toplangs?user=<user>&bgcolor=000&titlecolor=fff&bordercolor=blue)
 ```
+
+Colors accept hex values (with or without `#`) or CSS color names like `blue` and `green`.
 
 #### Hide
 ```markdown

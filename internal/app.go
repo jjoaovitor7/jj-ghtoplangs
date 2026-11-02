@@ -94,7 +94,7 @@ func SetTemplatesDir() {
   indexTemplate = template.Must(template.ParseFiles(filepath.Join(templatesDir, "index.tmpl")))
 }
 
-func generateSVG(bgColor string, titleColor string, borderColor string, langs []LangView) []byte {
+func generateSVG(bgColor string, titleColor string, borderColor string, langs []LangView) ([]byte, error) {
   const (
     colWidth  = 128
     colLeftX  = 32
@@ -153,8 +153,11 @@ func generateSVG(bgColor string, titleColor string, borderColor string, langs []
   }
 
   var svgBuffer bytes.Buffer
-  topLangsTemplate.Execute(&svgBuffer, data)
-  return svgBuffer.Bytes()
+  if err := topLangsTemplate.Execute(&svgBuffer, data); err != nil {
+    return nil, err
+  }
+
+  return svgBuffer.Bytes(), nil
 }
 
 func topLangsHandler(username string, token string, limit int, hide map[string]bool) (map[string]int, error, int) {
@@ -203,6 +206,55 @@ func topLangsHandler(username string, token string, limit int, hide map[string]b
   return sum, nil, http.StatusOK
 }
 
+func isHexColor(value string) bool {
+  if value == "" {
+    return false
+  }
+
+  for _, r := range value {
+    if !((r >= '0' && r <= '9') || (r >= 'a' && r <= 'f') || (r >= 'A' && r <= 'F')) {
+      return false
+    }
+  }
+
+  return true
+}
+
+func isColorName(value string) bool {
+  if value == "" {
+    return false
+  }
+
+  for _, r := range value {
+    if !((r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z')) {
+      return false
+    }
+  }
+
+  return true
+}
+
+func normalizeColor(value string) (string, bool) {
+  value = strings.TrimSpace(value)
+  if value == "" {
+    return "", true
+  }
+
+  hex := strings.TrimPrefix(value, "#")
+  switch len(hex) {
+  case 3, 4, 6, 8:
+    if isHexColor(hex) {
+      return "#" + strings.ToLower(hex), true
+    }
+  }
+
+  if isColorName(value) {
+    return strings.ToLower(value), true
+  }
+
+  return "", false
+}
+
 func TopLangsRouteHandler(w http.ResponseWriter, r *http.Request) {
   token := os.Getenv("GITHUB_TOKEN")
 
@@ -212,19 +264,31 @@ func TopLangsRouteHandler(w http.ResponseWriter, r *http.Request) {
     return
   }
 
-  bgColor := r.URL.Query().Get("bgcolor")
+  bgColor, ok := normalizeColor(r.URL.Query().Get("bgcolor"))
+  if !ok {
+    http.Error(w, "Invalid 'bgcolor'. Use a hex value or a CSS color name.", http.StatusBadRequest)
+    return
+  }
   if bgColor == "" {
-    bgColor = "111"
+    bgColor = "#111"
   }
 
-  titleColor := r.URL.Query().Get("titlecolor")
+  titleColor, ok := normalizeColor(r.URL.Query().Get("titlecolor"))
+  if !ok {
+    http.Error(w, "Invalid 'titlecolor'. Use a hex value or a CSS color name.", http.StatusBadRequest)
+    return
+  }
   if titleColor == "" {
-    titleColor = "fff"
+    titleColor = "#fff"
   }
 
-  borderColor := r.URL.Query().Get("bordercolor")
-  if borderColor != "" {
-    borderColor = fmt.Sprintf("#%s", borderColor)
+  borderColor, ok := normalizeColor(r.URL.Query().Get("bordercolor"))
+  if !ok {
+    http.Error(w, "Invalid 'bordercolor'. Use a hex value or a CSS color name.", http.StatusBadRequest)
+    return
+  }
+  if borderColor == "" {
+    borderColor = "none"
   }
 
   limitQuery := r.URL.Query().Get("limit")
@@ -273,10 +337,15 @@ func TopLangsRouteHandler(w http.ResponseWriter, r *http.Request) {
     return list[i].Bytes > list[j].Bytes
   })
 
-  svg := generateSVG(fmt.Sprintf("#%s", bgColor),
-    fmt.Sprintf("#%s", titleColor),
+  svg, err := generateSVG(bgColor,
+    titleColor,
     borderColor,
     list)
+  if err != nil {
+    log.Println(err)
+    http.Error(w, "Error generating SVG.", http.StatusInternalServerError)
+    return
+  }
 
   cache.set(cacheKey, svg)
 
