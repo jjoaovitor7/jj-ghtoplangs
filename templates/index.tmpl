@@ -1,11 +1,10 @@
 <!doctype html>
-<html>
+<html lang="en" data-bs-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>
-      JJ GH Top Langs
-    </title>
+    <meta name="description" content="Generate a GitHub top languages card for your README." />
+    <title>JJ GH Top Langs</title>
 
     <link rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
@@ -21,20 +20,45 @@
     />
 
     <style>
+      html,
       body {
+        height: 100%;
+      }
+
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        overflow: hidden;
         font-family: "Poppins", sans-serif;
         opacity: 0;
-        transition: opacity 1s ease-in-out;
+        background-color: #0d1117;
+        background-image:
+          radial-gradient(900px 500px at 50% -10%, rgba(88, 166, 255, 0.16), transparent 65%),
+          radial-gradient(700px 450px at 110% 100%, rgba(163, 113, 247, 0.1), transparent 65%);
+        background-attachment: fixed;
+        transition: opacity 0.8s ease-in-out;
       }
       body.visible {
         opacity: 1;
       }
 
       .card {
-        max-width: 800px;
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        max-width: 1080px;
+        height: calc(100dvh - 2rem);
+        max-height: 820px;
+        padding: 1.5rem;
+        overflow: hidden;
+        background-color: rgba(22, 27, 34, 0.94);
+        border: 1px solid rgba(240, 246, 252, 0.09);
+        box-shadow: 0 24px 60px rgba(1, 4, 9, 0.55);
         opacity: 0;
-        transform: translateY(32px);
-        transition: opacity 2s ease, transform 2s ease;
+        transform: translateY(24px);
+        transition: opacity 1.2s ease, transform 1.2s ease;
       }
       .card.visible {
         opacity: 1;
@@ -42,98 +66,430 @@
       }
 
       .github-corner {
-        position: absolute;
-        top: 16px;
+        position: fixed;
+        top: 12px;
         right: 16px;
-        font-size: 2rem;
+        font-size: 1.6rem;
         transition: transform 0.2s;
       }
       .github-corner:hover {
-        transform: scale(1.32);
+        transform: scale(1.3);
       }
 
+      .brand-icon {
+        display: grid;
+        place-items: center;
+        flex: 0 0 auto;
+        width: 2.5rem;
+        height: 2.5rem;
+        font-size: 1.35rem;
+        color: #e6edf3;
+        background: linear-gradient(135deg, rgba(88, 166, 255, 0.22), rgba(163, 113, 247, 0.22));
+        border: 1px solid rgba(240, 246, 252, 0.12);
+        border-radius: 0.85rem;
+      }
+
+      .section-title {
+        font-size: 0.7rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--bs-secondary-color);
+      }
+
+      .form-label {
+        margin-bottom: 0.25rem;
+        font-size: 0.8rem;
+        font-weight: 500;
+      }
+
+      .form-text {
+        font-size: 0.7rem;
+        line-height: 1.2;
+        color: var(--bs-secondary-color);
+      }
+
+      .form-control,
+      .input-group-text {
+        font-size: 0.85rem;
+      }
+
+      .form-control {
+        color: #e6edf3;
+        background-color: #0d1117;
+        border-color: #30363d;
+      }
+      .form-control:focus {
+        color: #e6edf3;
+        background-color: #0d1117;
+        border-color: #58a6ff;
+        box-shadow: 0 0 0 0.2rem rgba(88, 166, 255, 0.16);
+      }
       .form-control::placeholder {
-        color: var(--bs-secondary);
+        color: #6e7681;
+        opacity: 1;
       }
-      .form-control:-moz-placeholder {
-        color: var(--bs-secondary);
+      .form-control:disabled {
+        background-color: #161b22;
+        border-color: #21262d;
       }
-      .form-control::-webkit-input-placeholder {
-        color: var(--bs-secondary);
+
+      .input-group-text {
+        color: var(--bs-secondary-color);
+        background-color: #161b22;
+        border-color: #30363d;
+      }
+
+      .form-control-color {
+        width: 2.5rem;
+        padding: 0.2rem;
+        cursor: pointer;
+      }
+      .form-control-color::-webkit-color-swatch-wrapper {
+        padding: 0;
+      }
+      .form-control-color::-webkit-color-swatch,
+      .form-control-color::-moz-color-swatch {
+        border: 0;
+        border-radius: 0.2rem;
+      }
+
+      .form-check-input {
+        margin: 0;
+        cursor: pointer;
+      }
+
+      hr {
+        margin: 0.9rem 0;
+        border-color: rgba(240, 246, 252, 0.12);
+        opacity: 1;
+      }
+
+      .btn-generate {
+        font-weight: 600;
+        color: #fff;
+        background: linear-gradient(135deg, #2f81f7, #58a6ff);
+        border: 0;
+        box-shadow: 0 8px 20px rgba(47, 129, 247, 0.25);
+        transition: filter 0.2s, transform 0.1s, box-shadow 0.2s;
+      }
+      .btn-generate:hover,
+      .btn-generate:focus {
+        color: #fff;
+        filter: brightness(1.08);
+        box-shadow: 0 10px 24px rgba(47, 129, 247, 0.35);
+      }
+      .btn-generate:active {
+        transform: translateY(1px);
+      }
+      .btn-generate:disabled {
+        color: #c9d1d9;
+        background: #21262d;
+        box-shadow: none;
+      }
+
+      .preview-frame {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 1 1 auto;
+        min-height: 0;
+        padding: 1rem;
+        overflow: hidden;
+        background-color: #0d1117;
+        background-image:
+          linear-gradient(45deg, rgba(240, 246, 252, 0.025) 25%, transparent 25%),
+          linear-gradient(-45deg, rgba(240, 246, 252, 0.025) 25%, transparent 25%),
+          linear-gradient(45deg, transparent 75%, rgba(240, 246, 252, 0.025) 75%),
+          linear-gradient(-45deg, transparent 75%, rgba(240, 246, 252, 0.025) 75%);
+        background-size: 18px 18px;
+        background-position: 0 0, 0 9px, 9px -9px, -9px 0;
+        border: 1px dashed #30363d;
+        border-radius: 0.9rem;
+      }
+
+      .preview-placeholder {
+        max-width: 22rem;
+        font-size: 0.85rem;
+        color: #6e7681;
+        text-align: center;
       }
 
       #preview {
-        max-height: 256px;
-        transition: opacity 0.8s ease-in-out;
-        opacity: 0;
+        display: none;
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
       }
       #preview.visible {
-        opacity: 1;
+        display: block;
+      }
+
+      #markdown {
+        font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+        font-size: 0.75rem;
+        resize: none;
+      }
+
+      .spin {
+        display: inline-block;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .copied {
+        color: #0d1117 !important;
+        background-color: #3fb950;
+        border-color: #3fb950;
+      }
+      .copied:hover,
+      .copied:focus {
+        color: #0d1117 !important;
+        background-color: #3fb950;
+        border-color: #3fb950;
+      }
+
+      @media (max-width: 991.98px) {
+        html,
+        body {
+          height: auto;
+        }
+
+        body {
+          display: block;
+          padding: 1rem;
+          overflow: auto;
+        }
+
+        .card {
+          height: auto;
+          max-height: none;
+          overflow: visible;
+        }
+
+        .preview-frame {
+          min-height: 200px;
+        }
       }
     </style>
   </head>
-  <body class="d-flex justify-content-center min-vh-100 position-relative bg-dark pt-2 pb-4">
+  <body class="position-relative">
     <a href="https://github.com/jjoaovitor7/jj-ghtoplangs"
-      target="_blank" class="github-corner z-1 text-light">
-      <i class="bi bi-github"></i>
+      target="_blank" rel="noopener noreferrer"
+      class="github-corner z-1 text-light" aria-label="View JJ GH Top Langs on GitHub">
+      <i class="bi bi-github" aria-hidden="true"></i>
     </a>
 
-    <div class="card bg-dark text-light shadow p-5 rounded-4 w-100">
-      <h2 class="mb-2 text-light">
-        JJ GH Top Langs
-      </h2>
+    <div class="card text-light rounded-4">
+      <header class="d-flex align-items-start gap-3 mb-3">
+        <div class="brand-icon" aria-hidden="true">
+          <i class="bi bi-bar-chart-line"></i>
+        </div>
+        <div class="min-w-0">
+          <h1 class="h4 fw-semibold mb-0">JJ GH Top Langs</h1>
+          <p class="form-text mb-0">
+            Generate a live SVG card of your most-used languages for any GitHub README.
+          </p>
+        </div>
+      </header>
 
-      <div class="mt-2 mb-4">
-        <label for="user" class="form-label text-light">
-          GitHub Username
-        </label>
-        <input
-          id="user"
-          class="form-control bg-dark text-light border-secondary"
-          placeholder="username"
-        />
-      </div>
+      <div class="row g-3 flex-grow-1 min-h-0">
+        <div class="col-lg-6 d-flex flex-column min-h-0">
+          <form id="langsForm" class="d-flex flex-column h-100" novalidate>
+            <div class="row g-2">
+              <div class="col-8">
+                <label for="user" class="form-label">
+                  GitHub username <span class="text-danger" aria-hidden="true">*</span>
+                </label>
+                <div class="input-group input-group-sm">
+                  <span class="input-group-text" aria-hidden="true">@</span>
+                  <input id="user"
+                    class="form-control"
+                    type="text"
+                    placeholder="octocat"
+                    autocomplete="off"
+                    autocapitalize="none"
+                    spellcheck="false"
+                    aria-describedby="userHint"
+                    required
+                  />
+                </div>
+                <div id="userHint" class="form-text mt-1">Public account to analyze.</div>
+              </div>
 
-      <div class="mb-4">
-        <label for="limit" class="form-label text-light">
-          Limit
-        </label>
-        <input id="limit"
-          class="form-control bg-dark text-light border-secondary"
-          placeholder="8"
-        />
-      </div>
+              <div class="col-4">
+                <label for="limit" class="form-label">Limit</label>
+                <input id="limit"
+                  class="form-control"
+                  type="number"
+                  min="1"
+                  step="1"
+                  inputmode="numeric"
+                  placeholder="8"
+                  value="8"
+                  aria-describedby="limitHint"
+                />
+                <div id="limitHint" class="form-text mt-1">Default: 8.</div>
+              </div>
 
-      <div class="mb-4">
-        <label for="hide" class="form-label text-light">
-          Hide (comma separated)
-        </label>
-        <input id="hide"
-          class="form-control bg-dark text-light border-secondary"
-          placeholder="mdx,ejs,python"
-        />
-      </div>
+              <div class="col-12">
+                <label for="hide" class="form-label">Hide languages</label>
+                <input id="hide"
+                  class="form-control"
+                  type="text"
+                  placeholder="mdx, ejs, python"
+                  autocomplete="off"
+                  autocapitalize="none"
+                  spellcheck="false"
+                  aria-describedby="hideHint"
+                />
+                <div id="hideHint" class="form-text mt-1">Comma-separated names.</div>
+              </div>
+            </div>
 
-      <div class="d-flex gap-2 mb-4">
-        <button id="generateBtn" class="btn btn-dark btn-sm border">
-          Generate
-        </button>
-      </div>
+            <hr />
 
-      <div class="mt-4">
-        <h4>
-          Preview
-        </h4>
-        <img id="preview" class="img-fluid mb-4" />
+            <div class="d-flex align-items-center justify-content-between gap-1 mb-2">
+              <h2 class="section-title mb-0">Appearance</h2>
+              <span class="form-text">Hex, without <code>#</code></span>
+            </div>
 
-        <h4 class="mt-4">
-          Markdown
-        </h4>
-        <textarea id="markdown"
-          class="form-control bg-dark text-light border-secondary"
-          readonly
-          rows="2">
-        </textarea>
+            <div class="row g-2">
+              <div class="col-4">
+                <label for="bgcolorText" class="form-label">Background</label>
+                <div class="input-group input-group-sm">
+                  <input id="bgcolorPicker"
+                    class="form-control form-control-color"
+                    type="color"
+                    value="#111111"
+                    aria-label="Pick the background color"
+                  />
+                  <input id="bgcolorText"
+                    class="form-control text-uppercase"
+                    type="text"
+                    maxlength="7"
+                    placeholder="111"
+                    value="111"
+                    autocomplete="off"
+                    autocapitalize="none"
+                    spellcheck="false"
+                    aria-label="Background hex color without the hash"
+                  />
+                </div>
+              </div>
+
+              <div class="col-4">
+                <label for="titlecolorText" class="form-label">Title</label>
+                <div class="input-group input-group-sm">
+                  <input id="titlecolorPicker"
+                    class="form-control form-control-color"
+                    type="color"
+                    value="#ffffff"
+                    aria-label="Pick the title color"
+                  />
+                  <input id="titlecolorText"
+                    class="form-control text-uppercase"
+                    type="text"
+                    maxlength="7"
+                    placeholder="fff"
+                    value="fff"
+                    autocomplete="off"
+                    autocapitalize="none"
+                    spellcheck="false"
+                    aria-label="Title hex color without the hash"
+                  />
+                </div>
+              </div>
+
+              <div class="col-4">
+                <div class="d-flex align-items-center justify-content-between gap-1">
+                  <label for="bordercolorText" class="form-label mb-0">Border</label>
+                  <input id="borderToggle"
+                    class="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    aria-label="Show a border"
+                  />
+                </div>
+                <div class="input-group input-group-sm mt-1">
+                  <input id="bordercolorPicker"
+                    class="form-control form-control-color"
+                    type="color"
+                    value="#555555"
+                    aria-label="Pick the border color"
+                    disabled
+                  />
+                  <input id="bordercolorText"
+                    class="form-control text-uppercase"
+                    type="text"
+                    maxlength="7"
+                    placeholder="none"
+                    autocomplete="off"
+                    autocapitalize="none"
+                    spellcheck="false"
+                    aria-label="Border hex color without the hash"
+                    disabled
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-auto pt-3">
+              <div id="formError" class="form-text text-danger mb-2" role="alert"></div>
+
+              <div class="d-flex flex-wrap gap-2">
+                <button id="generateBtn" class="btn btn-generate btn-sm px-4" type="submit">
+                  <i class="bi bi-magic me-1" aria-hidden="true"></i>
+                  Generate
+                </button>
+                <button id="resetBtn" class="btn btn-outline-secondary btn-sm" type="button">
+                  <i class="bi bi-arrow-counterclockwise me-1" aria-hidden="true"></i>
+                  Reset
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <div class="col-lg-6 d-flex flex-column min-h-0">
+          <section class="d-flex flex-column flex-grow-1 min-h-0" aria-labelledby="previewHeading">
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <h2 id="previewHeading" class="section-title mb-0">Preview</h2>
+              <span class="badge rounded-pill text-bg-secondary">SVG</span>
+            </div>
+
+            <div class="preview-frame">
+              <img id="preview" class="img-fluid" alt="" />
+              <div id="previewPlaceholder" class="preview-placeholder" role="status">
+                <i id="previewPlaceholderIcon" class="bi bi-image fs-3 d-block mb-2" aria-hidden="true"></i>
+                <span id="previewPlaceholderText">Your card will appear here.</span>
+              </div>
+            </div>
+          </section>
+
+          <section class="mt-3" aria-labelledby="markdownHeading">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-1">
+              <h2 id="markdownHeading" class="section-title mb-0">Markdown</h2>
+              <button id="copyBtn" class="btn btn-outline-light btn-sm py-0" type="button" disabled>
+                <i class="bi bi-clipboard me-1" aria-hidden="true"></i>
+                Copy
+              </button>
+            </div>
+            <textarea id="markdown"
+              class="form-control"
+              rows="2"
+              readonly
+              spellcheck="false"
+              aria-label="Markdown snippet"
+              placeholder="Generate a card to get its Markdown snippet."
+            ></textarea>
+          </section>
+        </div>
       </div>
     </div>
 
@@ -141,47 +497,402 @@
       document.addEventListener("DOMContentLoaded", () => {
         document.body.classList.add("visible");
         document.querySelector(".card").classList.add("visible");
+        document.getElementById("user").focus();
       });
 
-      const inputs = [
-       document.getElementById("user"),
-       document.getElementById("limit"),
-       document.getElementById("hide")
+      const form = document.getElementById("langsForm");
+      const userInput = document.getElementById("user");
+      const limitInput = document.getElementById("limit");
+      const hideInput = document.getElementById("hide");
+      const borderToggle = document.getElementById("borderToggle");
+      const formError = document.getElementById("formError");
+      const generateBtn = document.getElementById("generateBtn");
+      const resetBtn = document.getElementById("resetBtn");
+      const previewImg = document.getElementById("preview");
+      const previewPlaceholder = document.getElementById("previewPlaceholder");
+      const previewPlaceholderIcon = document.getElementById("previewPlaceholderIcon");
+      const previewPlaceholderText = document.getElementById("previewPlaceholderText");
+      const markdownField = document.getElementById("markdown");
+      const copyBtn = document.getElementById("copyBtn");
+
+      const PREVIEW_TIMEOUT_MS = 20000;
+      const COPY_LABEL = '<i class="bi bi-clipboard me-1" aria-hidden="true"></i>Copy';
+      let generateLabel = generateBtn.innerHTML;
+      let requestId = 0;
+      let copiedTimer = 0;
+      let previewObjectUrl = "";
+
+      const colorFields = [
+        {
+          name: "bgcolor",
+          text: document.getElementById("bgcolorText"),
+          picker: document.getElementById("bgcolorPicker"),
+          defaultValue: "111"
+        },
+        {
+          name: "titlecolor",
+          text: document.getElementById("titlecolorText"),
+          picker: document.getElementById("titlecolorPicker"),
+          defaultValue: "fff"
+        },
+        {
+          name: "bordercolor",
+          text: document.getElementById("bordercolorText"),
+          picker: document.getElementById("bordercolorPicker"),
+          defaultValue: ""
+        }
       ];
 
-      const previewImg = document.getElementById("preview");
-      const md = document.getElementById("markdown");
-      const generateBtn = document.getElementById("generateBtn");
+      function normalizeHex(value) {
+        let hex = String(value || "").trim().replace(/^#/, "").toLowerCase();
 
-      generateBtn.addEventListener("click", function(e) {
-        generateBtn.disabled = true;
-        const originalText = generateBtn.textContent;
-        generateBtn.textContent = "Loading...";
+        if (/^[0-9a-f]{3}$/.test(hex)) {
+          hex = hex.split("").map((char) => char + char).join("");
+        }
+
+        return /^[0-9a-f]{6}$/.test(hex) ? hex : "";
+      }
+
+      function syncPicker(field) {
+        const hex = normalizeHex(field.text.value);
+
+        if (hex) {
+          field.picker.value = "#" + hex;
+        }
+      }
+
+      function setColorInvalid(field, invalid) {
+        field.text.classList.toggle("is-invalid", invalid);
+      }
+
+      colorFields.forEach((field) => {
+        field.picker.addEventListener("input", () => {
+          field.text.value = field.picker.value.replace("#", "");
+          setColorInvalid(field, false);
+        });
+
+        field.text.addEventListener("input", () => {
+          setColorInvalid(field, false);
+          syncPicker(field);
+        });
+
+        field.text.addEventListener("blur", () => {
+          const raw = field.text.value.trim().replace(/^#/, "").toLowerCase();
+
+          if (raw) {
+            field.text.value = raw;
+          }
+
+          syncPicker(field);
+        });
+      });
+
+      function isBorderField(field) {
+        return field.name === "bordercolor";
+      }
+
+      function updateBorderControls() {
+        const enabled = borderToggle.checked;
+        const borderField = colorFields.find(isBorderField);
+
+        borderField.text.disabled = !enabled;
+        borderField.picker.disabled = !enabled;
+
+        if (enabled && !borderField.text.value.trim()) {
+          borderField.text.value = borderField.picker.value.replace("#", "");
+        }
+
+        if (!enabled) {
+          setColorInvalid(borderField, false);
+        }
+      }
+
+      borderToggle.addEventListener("change", updateBorderControls);
+
+      function showError(message) {
+        formError.textContent = message;
+      }
+
+      function clearError() {
+        formError.textContent = "";
+      }
+
+      function setPreviewState(state, message) {
         previewImg.classList.remove("visible");
 
-        let url = `${document.location}toplangs?user=${encodeURIComponent(inputs[0].value)}`;
-
-        if (inputs[1].value) {
-          url += "&limit=" + encodeURIComponent(inputs[1].value);
+        if (state === "hidden") {
+          previewPlaceholder.classList.remove("d-none");
+          return;
         }
 
-        if (inputs[2].value) {
-          url += "&hide=" + encodeURIComponent(inputs[2].value);
-        }
+        previewPlaceholder.classList.remove("d-none");
+        previewPlaceholderIcon.className = "bi fs-3 d-block mb-2";
 
-        const img = new Image();
-        img.crossOrigin = "anonymous";
-        img.src = url + "&t=" + Date.now();
-        img.onload = function(e) {
-          previewImg.src = img.src;
-          previewImg.classList.add("visible");
+        if (state === "loading") {
+          previewPlaceholderIcon.classList.add("bi-arrow-repeat", "spin");
+          previewPlaceholderText.textContent = "Generating your card...";
+        } else if (state === "error") {
+          previewPlaceholderIcon.classList.add("bi-exclamation-triangle", "text-danger");
+          previewPlaceholderText.textContent = message || "The card could not be loaded.";
+        } else {
+          previewPlaceholderIcon.classList.add("bi-image");
+          previewPlaceholderText.textContent = "Your card will appear here.";
+        }
+      }
+
+      function setGenerating(isGenerating) {
+        if (isGenerating) {
+          generateLabel = generateBtn.innerHTML;
+          generateBtn.disabled = true;
+          generateBtn.innerHTML =
+            '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Generating...';
+        } else {
           generateBtn.disabled = false;
-          generateBtn.textContent = originalText;
+          generateBtn.innerHTML = generateLabel;
+        }
+      }
+
+      function appendColor(params, field) {
+        const hex = normalizeHex(field.text.value);
+
+        if (!hex) {
+          return;
         }
 
-        md.value = `![JJ GH Top Langs](${url})`;
+        if (field.defaultValue && hex === normalizeHex(field.defaultValue)) {
+          return;
+        }
+
+        params.set(field.name, hex);
+      }
+
+      function buildParams() {
+        clearError();
+        userInput.classList.remove("is-invalid");
+
+        const user = userInput.value.trim();
+
+        if (!user) {
+          userInput.classList.add("is-invalid");
+          showError("Enter a GitHub username to generate a card.");
+          userInput.focus();
+          return null;
+        }
+
+        let hasInvalidColor = false;
+
+        colorFields.forEach((field) => {
+          if (isBorderField(field) && !borderToggle.checked) {
+            setColorInvalid(field, false);
+            return;
+          }
+
+          if (field.text.value.trim() && !normalizeHex(field.text.value)) {
+            setColorInvalid(field, true);
+            hasInvalidColor = true;
+          } else {
+            setColorInvalid(field, false);
+          }
+        });
+
+        if (hasInvalidColor) {
+          showError("Colors must be 3 or 6 digit hex values, with or without '#'.");
+          return null;
+        }
+
+        const params = new URLSearchParams();
+        params.set("user", user);
+
+        const limit = limitInput.value.trim();
+
+        if (limit) {
+          params.set("limit", limit);
+        }
+
+        const hide = hideInput.value.trim();
+
+        if (hide) {
+          params.set("hide", hide);
+        }
+
+        appendColor(params, colorFields[0]);
+        appendColor(params, colorFields[1]);
+
+        if (borderToggle.checked) {
+          appendColor(params, colorFields[2]);
+        }
+
+        return { params, user };
+      }
+
+      function clearPreview() {
+        previewImg.classList.remove("visible");
+        previewImg.removeAttribute("src");
+        previewImg.alt = "";
+
+        if (previewObjectUrl) {
+          URL.revokeObjectURL(previewObjectUrl);
+          previewObjectUrl = "";
+        }
+      }
+
+      async function generate(event) {
+        if (event) {
+          event.preventDefault();
+        }
+
+        const result = buildParams();
+
+        if (!result) {
+          return;
+        }
+
+        const url = new URL("toplangs", window.location.href);
+        url.search = result.params.toString();
+
+        setGenerating(true);
+        clearPreview();
+        setPreviewState("loading");
+
+        const id = ++requestId;
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), PREVIEW_TIMEOUT_MS);
+
+        try {
+          const cachedUrl = new URL(url);
+          cachedUrl.searchParams.set("t", Date.now());
+
+          const response = await fetch(cachedUrl.toString(), {
+            signal: controller.signal,
+            cache: "no-store",
+            headers: { Accept: "image/svg+xml" }
+          });
+          const body = await response.text();
+
+          if (id !== requestId) {
+            return;
+          }
+
+          if (!response.ok) {
+            const message = body.trim() || `Request failed with status ${response.status}.`;
+            throw new Error(message);
+          }
+
+          const blobUrl = URL.createObjectURL(new Blob([body], { type: "image/svg+xml" }));
+          previewObjectUrl = blobUrl;
+
+          previewImg.onload = () => {
+            previewImg.classList.add("visible");
+            previewPlaceholder.classList.add("d-none");
+          };
+          previewImg.onerror = () => {
+            clearPreview();
+            setPreviewState("error", "The server returned an invalid SVG card.");
+            showError("The server returned an invalid SVG card.");
+          };
+          previewImg.src = blobUrl;
+          previewImg.alt = `Top languages card for ${result.user}`;
+
+          markdownField.value = `![JJ GH Top Langs](${url.toString()})`;
+          copyBtn.disabled = false;
+        } catch (error) {
+          if (id !== requestId) {
+            return;
+          }
+
+          const message = error.name === "AbortError"
+            ? "The request timed out. Please try again."
+            : error.message || "The card could not be generated.";
+
+          clearPreview();
+          setPreviewState("error", message);
+          showError(message);
+          markdownField.value = "";
+          copyBtn.disabled = true;
+        } finally {
+          clearTimeout(timer);
+
+          if (id === requestId) {
+            setGenerating(false);
+          }
+        }
+      }
+
+      form.addEventListener("submit", generate);
+
+      resetBtn.addEventListener("click", () => {
+        requestId += 1;
+        form.reset();
+        clearError();
+        userInput.classList.remove("is-invalid");
+
+        colorFields.forEach((field) => {
+          setColorInvalid(field, false);
+          syncPicker(field);
+        });
+
+        updateBorderControls();
+        setGenerating(false);
+        clearPreview();
+        setPreviewState("empty");
+        markdownField.value = "";
+        copyBtn.disabled = true;
+        clearTimeout(copiedTimer);
+        copyBtn.classList.remove("copied");
+        copyBtn.innerHTML = COPY_LABEL;
+        userInput.focus();
       });
+
+      function flashCopied() {
+        clearTimeout(copiedTimer);
+        copyBtn.classList.add("copied");
+        copyBtn.innerHTML = '<i class="bi bi-check2 me-1" aria-hidden="true"></i>Copied!';
+
+        copiedTimer = setTimeout(() => {
+          copyBtn.classList.remove("copied");
+          copyBtn.innerHTML = COPY_LABEL;
+        }, 1800);
+      }
+
+      async function copyMarkdown() {
+        const text = markdownField.value;
+
+        if (!text) {
+          return;
+        }
+
+        let copied = false;
+
+        if (navigator.clipboard && window.isSecureContext) {
+          try {
+            await navigator.clipboard.writeText(text);
+            copied = true;
+          } catch (error) {
+            copied = false;
+          }
+        }
+
+        if (!copied) {
+          markdownField.focus();
+          markdownField.select();
+
+          try {
+            copied = document.execCommand("copy");
+          } catch (error) {
+            copied = false;
+          }
+        }
+
+        if (copied) {
+          flashCopied();
+        } else {
+          showError("Copy failed. Select the Markdown and copy it manually.");
+        }
+      }
+
+      copyBtn.addEventListener("click", copyMarkdown);
+
+      updateBorderControls();
     </script>
   </body>
 </html>
-
