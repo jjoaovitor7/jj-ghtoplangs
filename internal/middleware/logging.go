@@ -33,9 +33,15 @@ func apacheLog(r *http.Request, status int) {
 
 func LoggingMiddleware(next http.Handler) http.Handler {
   return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-    lw := &loggingWriter{w, http.StatusOK}
+    lw := &loggingWriter{ResponseWriter: w}
     next.ServeHTTP(lw, r)
-    apacheLog(r, lw.status)
+
+    status := lw.status
+    if status == 0 {
+      status = http.StatusOK
+    }
+
+    apacheLog(r, status)
   })
 }
 
@@ -46,4 +52,12 @@ func (lw *loggingWriter) WriteHeader(code int) {
 
   lw.status = code
   lw.ResponseWriter.WriteHeader(code)
+}
+
+func (lw *loggingWriter) Write(data []byte) (int, error) {
+  if lw.status == 0 {
+    lw.WriteHeader(http.StatusOK)
+  }
+
+  return lw.ResponseWriter.Write(data)
 }

@@ -12,14 +12,17 @@ import (
   "sort"
   "strconv"
   "strings"
+  "sync"
+  "time"
 )
 
 type SVGData struct {
-  BgColor    string
-  TitleColor string
-  Width      int
-  Height     int
-  Langs      []LangView
+  BgColor     string
+  TitleColor  string
+  BorderColor string
+  Width       int
+  Height      int
+  Langs       []LangView
 }
 
 type LangView struct {
@@ -53,9 +56,27 @@ var langColors = map[string]string{
   "Python":     "#3572A5",
 }
 
-var cache = map[string][]byte{}
+type svgCache struct {
+  mu    sync.RWMutex
+  items map[string][]byte
+}
 
-var GITHUB_API = "https://api.github.com"
+var cache = &svgCache{items: map[string][]byte{}}
+
+func (c *svgCache) get(key string) ([]byte, bool) {
+  c.mu.RLock()
+  defer c.mu.RUnlock()
+
+  svg, ok := c.items[key]
+  return svg, ok
+}
+
+func (c *svgCache) set(key string, value []byte) {
+  c.mu.Lock()
+  defer c.mu.Unlock()
+
+  c.items[key] = value
+}
 
 var (
   templatesDir     string
@@ -73,11 +94,7 @@ func SetTemplatesDir() {
   indexTemplate = template.Must(template.ParseFiles(filepath.Join(templatesDir, "index.tmpl")))
 }
 
-func generateSVG(externalData struct {
-  Query      string
-  BgColor    string
-  TitleColor string
-}, langs []LangView) []byte {
+func generateSVG(bgColor string, titleColor string, borderColor string, langs []LangView) []byte {
   const (
     colWidth  = 128
     colLeftX  = 32
@@ -127,38 +144,33 @@ func generateSVG(externalData struct {
   }
 
   data := SVGData{
-    BgColor:    externalData.BgColor,
-    TitleColor: externalData.TitleColor,
-    Width:      364,
-    Height:     colStartY + colStepY*maxRows + 16,
-    Langs:      langs,
+    BgColor:     bgColor,
+    TitleColor:  titleColor,
+    BorderColor: borderColor,
+    Width:       364,
+    Height:      colStartY + colStepY*maxRows + 16,
+    Langs:       langs,
   }
 
   var svgBuffer bytes.Buffer
   topLangsTemplate.Execute(&svgBuffer, data)
-  svg := svgBuffer.Bytes()
-  cache[externalData.Query] = svg
-  return svg
+  return svgBuffer.Bytes()
 }
 
-func topLangsHandler(w http.ResponseWriter, username string, token string, limit int, hide map[string]bool) map[string]int {
+func topLangsHandler(username string, token string, limit int, hide map[string]bool) (map[string]int, error, int) {
   githubProvider := github.NewGitHubProvider(token)
 
   sum := make(map[string]int)
   repos, err, status := githubProvider.FetchRepos(username)
 
   if err != nil {
-    log.Println(err)
-    http.Error(w, err.Error(), status)
-    return nil
+    return nil, err, status
   }
 
   for _, r := range repos {
     langs, err, status := githubProvider.FetchLangs(username, r.Name)
     if err != nil {
-      log.Println(err)
-      http.Error(w, err.Error(), status)
-      return nil
+      return nil, err, status
     }
 
     for lang, bytes := range langs {
@@ -188,7 +200,7 @@ func topLangsHandler(w http.ResponseWriter, username string, token string, limit
     }
     sum = topLangs
   }
-  return sum
+  return sum, nil, http.StatusOK
 }
 
 func TopLangsRouteHandler(w http.ResponseWriter, r *http.Request) {
@@ -210,6 +222,11 @@ func TopLangsRouteHandler(w http.ResponseWriter, r *http.Request) {
     titleColor = "fff"
   }
 
+  borderColor := r.URL.Query().Get("bordercolor")
+  if borderColor != "" {
+    borderColor = fmt.Sprintf("#%s", borderColor)
+  }
+
   limitQuery := r.URL.Query().Get("limit")
   var limit int = 8
   if n, err := strconv.Atoi(limitQuery); err == nil {
@@ -225,28 +242,24 @@ func TopLangsRouteHandler(w http.ResponseWriter, r *http.Request) {
     }
   }
 
-  url := fmt.Sprintf("%s/users/%s", GITHUB_API, user)
-  req, _ := http.NewRequest("GET", url, nil)
-  req.Header.Set("Authorization", fmt.Sprintf("token %s", token))
+  params := r.URL.Query()
+  params.Del("t")
+  cacheKey := params.Encode()
 
-  res, _ := http.DefaultClient.Do(req)
-  if res.StatusCode == 404 {
-    http.Error(w, "User not found.", http.StatusNotFound)
+  if svg, ok := cache.get(cacheKey); ok {
+    writeSVG(w, svg)
     return
   }
 
-  query := r.URL.RawQuery
-  if svg, ok := cache[query]; ok {
-    w.Header().Set("Content-Type", "image/svg+xml; charset=utf-8")
-    w.WriteHeader(http.StatusOK)
-    w.Write(svg)
-    return
-  }
-
-  data := topLangsHandler(w, user,
+  data, err, status := topLangsHandler(user,
     token,
     limit,
     hide)
+  if err != nil {
+    log.Println(err)
+    http.Error(w, err.Error(), status)
+    return
+  }
 
   var list []LangView
   for k, v := range data {
@@ -260,16 +273,17 @@ func TopLangsRouteHandler(w http.ResponseWriter, r *http.Request) {
     return list[i].Bytes > list[j].Bytes
   })
 
-  svg := generateSVG(struct {
-    Query      string
-    BgColor    string
-    TitleColor string
-  }{
-    Query:      query,
-    BgColor:    fmt.Sprintf("#%s", bgColor),
-    TitleColor: fmt.Sprintf("#%s", titleColor),
-  }, list)
+  svg := generateSVG(fmt.Sprintf("#%s", bgColor),
+    fmt.Sprintf("#%s", titleColor),
+    borderColor,
+    list)
 
+  cache.set(cacheKey, svg)
+
+  writeSVG(w, svg)
+}
+
+func writeSVG(w http.ResponseWriter, svg []byte) {
   w.Header().Set("Cache-Control", "public, max-age=43200, must-revalidate")
   w.Header().Set("Content-Type", "image/svg+xml; charset=utf-8")
   w.Header().Set("Content-Length", strconv.Itoa(len(svg)))
@@ -281,4 +295,11 @@ func TopLangsRouteHandler(w http.ResponseWriter, r *http.Request) {
 func IndexRouteHandler(w http.ResponseWriter, r *http.Request) {
   indexTemplate.Execute(w, nil)
   w.WriteHeader(http.StatusOK)
+}
+
+func HealthRouteHandler(w http.ResponseWriter, r *http.Request) {
+  w.Header().Set("Content-Type", "application/json; charset=utf-8")
+  w.Header().Set("Cache-Control", "no-store")
+  w.WriteHeader(http.StatusOK)
+  fmt.Fprintf(w, `{"status":"ok","time":"%s"}`, time.Now().Format(time.RFC3339))
 }

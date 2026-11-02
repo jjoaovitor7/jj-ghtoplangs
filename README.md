@@ -22,6 +22,11 @@
 ![JJ GH Top Langs](https://jj-ghtoplangs.alwaysdata.net/toplangs?user=<user>&bgcolor=000&titlecolor=fff)
 ```
 
+#### Border Color
+```markdown
+![JJ GH Top Langs](https://jj-ghtoplangs.alwaysdata.net/toplangs?user=<user>&bgcolor=000&titlecolor=fff&bordercolor=fff)
+```
+
 #### Hide
 ```markdown
 ![JJ GH Top Langs](https://jj-ghtoplangs.alwaysdata.net/toplangs?user=<user>&bgcolor=000&titlecolor=fff&hide=mdx,ejs,python)

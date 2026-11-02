@@ -27,6 +27,19 @@ func NewGitHubProvider(token string) GitHubProvider {
   }
 }
 
+func apiError(statusCode int, notFoundMessage string) (error, int) {
+  switch statusCode {
+  case http.StatusNotFound:
+    return errors.New(notFoundMessage), http.StatusNotFound
+  case http.StatusUnauthorized:
+    return errors.New("GitHub token is missing or invalid."), http.StatusBadGateway
+  case http.StatusForbidden:
+    return errors.New("GitHub API rate limit exceeded. Try again later."), http.StatusBadGateway
+  default:
+    return errors.New("GitHub error."), http.StatusBadGateway
+  }
+}
+
 func (g GitHubProvider) FetchRepos(username string) ([]Repo, error, int) {
   url := fmt.Sprintf("%s/users/%s/repos?per_page=99", g.GITHUB_API, username)
 
@@ -40,12 +53,9 @@ func (g GitHubProvider) FetchRepos(username string) ([]Repo, error, int) {
   }
   defer res.Body.Close()
 
-  if res.StatusCode == http.StatusNotFound {
-    return nil, errors.New("User not found."), http.StatusNotFound
-  }
-
   if res.StatusCode != http.StatusOK {
-    return nil, errors.New("GitHub error."), res.StatusCode
+    err, status := apiError(res.StatusCode, "User not found.")
+    return nil, err, status
   }
 
   var repos []Repo
@@ -71,7 +81,8 @@ func (g GitHubProvider) FetchLangs(username, repo string) (map[string]int, error
   defer res.Body.Close()
 
   if res.StatusCode != http.StatusOK {
-    return nil, errors.New("GitHub error."), res.StatusCode
+    err, status := apiError(res.StatusCode, "Repository not found.")
+    return nil, err, status
   }
 
   var langs map[string]int

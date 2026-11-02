@@ -31,6 +31,7 @@ func main() {
 
   mux.HandleFunc(newrelic.WrapHandleFunc(nr, "/", app.IndexRouteHandler))
   mux.HandleFunc(newrelic.WrapHandleFunc(nr, "/toplangs", app.TopLangsRouteHandler))
+  mux.HandleFunc(newrelic.WrapHandleFunc(nr, "/health", app.HealthRouteHandler))
 
   logging := mw.LoggingMiddleware(mux)
   log.Printf("Server started at %s", PORT)
