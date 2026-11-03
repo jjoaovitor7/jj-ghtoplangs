@@ -35,8 +35,8 @@
         opacity: 0;
         background-color: #0d1117;
         background-image:
-          radial-gradient(900px 500px at 50% -10%, rgba(88, 166, 255, 0.16), transparent 65%),
-          radial-gradient(700px 450px at 110% 100%, rgba(163, 113, 247, 0.1), transparent 65%);
+          radial-gradient(900px 500px at 50% -10%, rgba(0, 128, 0, 0.16), transparent 65%),
+          radial-gradient(700px 450px at 110% 100%, rgba(0, 100, 0, 0.1), transparent 65%);
         background-attachment: fixed;
         transition: opacity 0.8s ease-in-out;
       }
@@ -84,7 +84,7 @@
         height: 2.5rem;
         font-size: 1.35rem;
         color: #e6edf3;
-        background: linear-gradient(135deg, rgba(88, 166, 255, 0.22), rgba(163, 113, 247, 0.22));
+        background: linear-gradient(135deg, rgba(0, 128, 0, 0.22), rgba(0, 100, 0, 0.22));
         border: 1px solid rgba(240, 246, 252, 0.12);
         border-radius: 0.85rem;
       }
@@ -122,8 +122,8 @@
       .form-control:focus {
         color: #e6edf3;
         background-color: #0d1117;
-        border-color: #58a6ff;
-        box-shadow: 0 0 0 0.2rem rgba(88, 166, 255, 0.16);
+        border-color: green;
+        box-shadow: 0 0 0 0.2rem rgba(0, 128, 0, 0.16);
       }
       .form-control::placeholder {
         color: #6e7681;
@@ -168,16 +168,16 @@
       .btn-generate {
         font-weight: 600;
         color: #fff;
-        background: linear-gradient(135deg, #2f81f7, #58a6ff);
+        background: linear-gradient(135deg, darkgreen, green);
         border: 0;
-        box-shadow: 0 8px 20px rgba(47, 129, 247, 0.25);
+        box-shadow: 0 8px 20px rgba(0, 100, 0, 0.25);
         transition: filter 0.2s, transform 0.1s, box-shadow 0.2s;
       }
       .btn-generate:hover,
       .btn-generate:focus {
         color: #fff;
         filter: brightness(1.08);
-        box-shadow: 0 10px 24px rgba(47, 129, 247, 0.35);
+        box-shadow: 0 10px 24px rgba(0, 100, 0, 0.35);
       }
       .btn-generate:active {
         transform: translateY(1px);
@@ -244,14 +244,14 @@
 
       .copied {
         color: #0d1117 !important;
-        background-color: #3fb950;
-        border-color: #3fb950;
+        background-color: green;
+        border-color: green;
       }
       .copied:hover,
       .copied:focus {
         color: #0d1117 !important;
-        background-color: #3fb950;
-        border-color: #3fb950;
+        background-color: green;
+        border-color: green;
       }
 
       @media (max-width: 991.98px) {
@@ -416,7 +416,7 @@
                     aria-label="Show a border"
                   />
                 </div>
-                <div class="input-group input-group-sm mt-1">
+                <div class="input-group input-group-sm mt-2">
                   <input id="bordercolorPicker"
                     class="form-control form-control-color"
                     type="color"
@@ -428,7 +428,7 @@
                     class="form-control"
                     type="text"
                     maxlength="24"
-                    placeholder="blue"
+                    placeholder="green"
                     autocomplete="off"
                     autocapitalize="none"
                     spellcheck="false"
